@@ -34,9 +34,9 @@ def rms_prop(cost, params, accs, lr=0.001, rho=0.9, epsilon=1e-6):
 	grads = T.grad(cost=cost, wrt=params)
 	updates = []
 	for (grad, param, acc) in zip(grads, params, accs):
-		acc_new = rho * acc + (1.0 - rho) * grad
+		acc_new = rho * acc + (1.0 - rho) * grad ** 2
 		# epsilon is important here to avoid divide by zero
-		grad_scaling = T.sqrt(acc_new ** 2 + epsilon)
+		grad_scaling = T.sqrt(acc_new + epsilon)
 		updates.append((param, param - lr * (grad / grad_scaling)))
 		updates.append((acc, acc_new))
 	return updates
@@ -75,10 +75,10 @@ def run_net(num_iters, batch_size):
 	w_o = init_weights((625, 10)) # fully connected output layer
 
 	# accumulator variables for RMS prop
-	acc_w = init_weights((8, 1, 5, 5))
-	acc_w2 = init_weights((8, 8, 3, 3))
-	acc_w3 = init_weights((392, 625))
-	acc_wo = init_weights((625, 10))
+	acc_w = init_weights((8, 1, 5, 5), initial_max_val=0.0)
+	acc_w2 = init_weights((8, 8, 3, 3), initial_max_val=0.0)
+	acc_w3 = init_weights((392, 625), initial_max_val=0.0)
+	acc_wo = init_weights((625, 10), initial_max_val=0.0)
 
 	noise_act_1_pooled, noise_act_2_flattened, noise_l4, noise_net_output = \
 		forward_prop(input_sym, w, w2, w3, w_o, 0.2, 0.5)
